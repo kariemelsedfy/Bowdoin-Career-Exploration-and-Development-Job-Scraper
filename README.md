@@ -18,7 +18,7 @@ Then expand to:
 
 - API: FastAPI (`backend/main.py`)
 - Database: PostgreSQL + SQLAlchemy models
-- Enrichment: Claude-assisted URL resolver + CSV worker (`scripts/enrich_employers_csv.py`)
+- Enrichment: Claude URL resolver via Amazon Bedrock (or direct Anthropic) + CSV worker (`scripts/enrich_employers_csv.py`)
 - Deployment (local): `docker-compose.yml`
 
 ## Repo Layout
@@ -52,10 +52,11 @@ source .venv/bin/activate
 pip install -r requirements-dev.txt
 ```
 
-2. Copy env template and fill in your key:
+2. Copy env template and set your LLM/AWS credentials:
 ```bash
 cp .env.example .env
 ```
+If using Bedrock, keep `LLM_PROVIDER=bedrock` and set AWS credentials (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, optional `AWS_SESSION_TOKEN`) plus `BEDROCK_REGION`.
 
 3. Start PostgreSQL:
 ```bash
