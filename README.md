@@ -18,7 +18,7 @@ Then expand to:
 
 - API: FastAPI (`backend/main.py`)
 - Database: PostgreSQL + SQLAlchemy models
-- Enrichment: Claude URL resolver via Amazon Bedrock (or direct Anthropic) + CSV worker (`scripts/enrich_employers_csv.py`)
+- Enrichment: Anthropic Claude Sonnet 4.5 on AWS Bedrock URL resolver + CSV worker (`scripts/enrich_employers_csv.py`)
 - Deployment (local): `docker-compose.yml`
 
 ## Repo Layout
@@ -52,11 +52,12 @@ source .venv/bin/activate
 pip install -r requirements-dev.txt
 ```
 
-2. Copy env template and set your LLM/AWS credentials:
+2. Copy env template and set your Bedrock credentials/model:
 ```bash
 cp .env.example .env
 ```
-If using Bedrock, keep `LLM_PROVIDER=bedrock` and set AWS credentials (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, optional `AWS_SESSION_TOKEN`) plus `BEDROCK_REGION`.
+Set `AWS_BEARER_TOKEN_BEDROCK` (or AWS credentials/profile), `BEDROCK_REGION`, and `BEDROCK_MODEL_ID` (for example, `us.anthropic.claude-sonnet-4-5-20250929-v1:0`).
+For Anthropic models, your AWS admin must submit Anthropic use-case details once in Bedrock Model access.
 
 3. Start PostgreSQL:
 ```bash
@@ -91,7 +92,7 @@ python scripts/enrich_employers_csv.py \
 
 ## Notes on Accuracy
 
-Current scaffold uses Claude for best-effort URL selection. For production-quality accuracy, add:
+Current scaffold uses Anthropic Claude on Bedrock for best-effort URL selection. For production-quality accuracy, add:
 - Search API candidate generation.
 - URL fetch/validation checks.
 - Manual review queue for low-confidence results.

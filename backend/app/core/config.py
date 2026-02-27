@@ -12,13 +12,9 @@ class Settings(BaseSettings):
 
     database_url: str = "postgresql+psycopg://postgres:postgres@localhost:5432/jobs_tracker"
 
-    llm_provider: str = "bedrock"
-
-    claude_api_key: str | None = None
-    anthropic_model: str = "claude-3-5-sonnet-latest"
-
     bedrock_region: str = "us-east-1"
-    bedrock_model_id: str = "anthropic.claude-3-5-sonnet-20240620-v1:0"
+    bedrock_model_id: str = "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
+    aws_bearer_token_bedrock: str | None = None
     aws_profile: str | None = None
     aws_access_key_id: str | None = None
     aws_secret_access_key: str | None = None

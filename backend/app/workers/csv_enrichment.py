@@ -69,11 +69,22 @@ class EmployerCsvEnrichmentWorker:
 
     @staticmethod
     def _load_rows(path: str) -> tuple[list[dict[str, str]], list[str]]:
-        with open(path, newline="", encoding="utf-8-sig") as handle:
-            reader = csv.DictReader(handle)
-            rows = list(reader)
-            fieldnames = reader.fieldnames or []
-        return rows, fieldnames
+        encodings = ["utf-8-sig", "cp1252", "latin-1"]
+        last_error: UnicodeDecodeError | None = None
+
+        for encoding in encodings:
+            try:
+                with open(path, newline="", encoding=encoding) as handle:
+                    reader = csv.DictReader(handle)
+                    rows = list(reader)
+                    fieldnames = reader.fieldnames or []
+                return rows, fieldnames
+            except UnicodeDecodeError as exc:
+                last_error = exc
+
+        if last_error:
+            raise last_error
+        raise ValueError(f"Could not decode CSV file at '{path}'.")
 
     def _process_row(
         self,
@@ -82,15 +93,21 @@ class EmployerCsvEnrichmentWorker:
         careers_url_column: str,
     ) -> dict[str, str]:
         employer_name = (row.get(employer_column) or "").strip()
-        result = self.service.enrich_employer(employer_name)
+        existing_url = (row.get(careers_url_column) or "").strip()
+        result = self.service.enrich_employer(employer_name, seed_url=existing_url or None)
+
+        resolved_url = result.careers_url or existing_url
+        reason = result.reason
+        if not result.careers_url and existing_url:
+            reason = f"{reason} Existing URL preserved."
 
         updates: dict[str, str] = {
-            careers_url_column: result.careers_url or "",
+            careers_url_column: resolved_url,
             "careers_url_source": result.source_url or "",
             "careers_url_confidence": (
                 f"{result.confidence_score:.2f}" if result.confidence_score is not None else ""
             ),
-            "careers_url_reason": result.reason,
+            "careers_url_reason": reason,
             "enrichment_status": result.status,
             "enrichment_error": result.error_message or "",
         }
